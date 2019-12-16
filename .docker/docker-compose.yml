@@ -1,0 +1,74 @@
+version: '3.7'
+
+networks:
+  backend:
+    driver: ${NETWORKS_DRIVER}
+
+services:
+  nginx:
+    image: ${COMPOSE_PROJECT_NAME}/nginx
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+      args:
+        - APP_CODE_PATH=/var/www/html/web
+        - APP_GROUP=${APP_GROUP}
+        - APP_GROUP_ID=${APP_GROUP_ID}
+        - APP_USER=${APP_USER}
+        - APP_USER_ID=${APP_USER_ID}
+        - TZ=${TIMEZONE}
+    volumes:
+      - ../web:/var/www/html
+    depends_on:
+        - php-fpm
+    ports:
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
+    networks:
+      backend:
+        aliases:
+          - fontanalib.localhost
+
+  php-fpm:
+    image: ${COMPOSE_PROJECT_NAME}/php-fpm
+    build:
+      context: .
+      dockerfile: ./php-fpm/Dockerfile
+      args:
+        - APP_CODE_PATH=${APP_CODE_PATH_CONTAINER}
+        - APP_GROUP=${APP_GROUP}
+        - APP_GROUP_ID=${APP_GROUP_ID}
+        - APP_USER=${APP_USER}
+        - APP_USER_ID=${APP_USER_ID}
+        - TARGET_PHP_VERSION=${PHP_VERSION}
+        - TZ=${TIMEZONE}
+    volumes:
+      - ../web:/var/www/html
+      - ../modules:/var/www/html/web/modules/custom
+      - ../themes:/var/www/html/web/modules/themes
+    environment:
+      APP_CODE_PATH: ${APP_CODE_PATH_CONTAINER}
+      APP_USER: ${APP_USER}
+    networks:
+      - backend
+
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - backend
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      backend:
+        aliases:
+          - adminer.fontanalib.localhost
