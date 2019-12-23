@@ -1,0 +1,167 @@
+version: "3.7"
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: "${COMPOSE_PROJECT_NAME}_nginx"
+    environment:
+      NGINX_ROOT: /var/www/html/web
+      APP_USER: $APP_USER
+      APP_GROUP: $APP_GROUP
+      NGINX_HOST: php
+    volumes:
+      - ./.config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./.config/nginx/default.template:/etc/nginx/sites-available/default.template
+      - ./.files:/var/www/html/web/sites/default/files/
+      - ./.modules:/var/www/html/web/modules/custom/
+      - ./.themes:/var/www/html/web/themes/custom/
+      - type: volume
+        source: webdata
+        target: /var/www/html
+      # - type: volume
+      #   source: publicfiles
+      #   target: /var/www/html/web/sites/default/files/public
+      # - type: volume
+      #   source: privatefiles
+      #   target: /var/www/html/web/sites/default/files/private
+      # - webdata:/var/www/html
+      # - publicfiles:/var/www/html/web/sites/default/files/public/
+      # - privatefiles:/var/www/html/web/sites/default/files/private/
+      # # - type: volume
+      # #   source: modules
+      # #   target: /var/www/html/web/modules/custom
+      # # - type: volume
+      # #   source: themes
+      # #   target: /var/www/html/web/themes/custom
+      # # - type: volume
+      # #   source: publicfiles
+      # #   target: /var/www/html/web/sites/default/files/public
+      # # - type: volume
+      # #   source: privatefiles
+      # #   target: /var/www/html/web/sites/default/files/private
+      # - ./_modules:/var/www/html/web/modules/custom/
+      # - ./_themes:/var/www/html/web/themes/custom/
+        # read_only: false
+      # - type: bind
+      #   source: ./_modules
+      #   target: /var/www/html/web/modules/custom
+      #   volume:
+      #     nocopy: true
+      # - type: bind
+      #   source: ./_themes
+      #   target: /var/www/html/web/themes/custom
+      #   volume:
+      #     nocopy: true
+    depends_on:
+        - php
+    command: /bin/sh -c "envsubst '$${NGINX_ROOT} $${NGINX_HOST}' < /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default.conf && nginx -g 'daemon off;'"
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_nginx.rule=Host(`${PROJECT_BASE_URL}`)"
+
+# https://docs.docker.com/compose/compose-file/#long-syntax
+  php:
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile
+    # Need to install the php extensions
+    volumes:
+      - ./.files:/var/www/html/web/sites/default/files/
+      - ./.modules:/var/www/html/web/modules/custom/
+      - ./.themes:/var/www/html/web/themes/custom/
+      - type: volume
+        source: webdata
+        target: /var/www/html
+      #   read_only: false
+      # - type: volume
+      #   source: webdata
+      #   target: /var/www/html
+      # - webdata:/var/www/html
+      # - type: volume
+      #   source: modules
+      #   target: /var/www/html/web/modules/custom
+      # - type: volume
+      #   source: themes
+      #   target: /var/www/html/web/themes/custom
+      # - type: volume
+      #   source: publicfiles
+      #   target: /var/www/html/web/sites/default/files/public
+      # - type: volume
+      #   source: privatefiles
+      #   target: /var/www/html/web/sites/default/files/private
+        # read_only: false
+
+  dev:
+    #this container will build the drupal installation -- needs composer, drush ?
+    build:
+      context: .
+      dockerfile: ./dev/Dockerfile
+    volumes:
+      - webdata:/project/drupal
+      # - type: bind
+      #   source: ./_modules
+      #   target: /project/drupal/web/modules/custom
+      # - type: bind
+      #   source: ./_themes
+      #   target: /project/drupal/web/themes/custom
+      # - type: volume
+      #   source: publicfiles
+      #   target: /project/drupal/web/sites/default/files/public
+      # - type: volume
+      #   source: privatefiles
+      #   target: /project/drupal/web/sites/default/files/private
+
+  db:
+    image: mariadb
+    container_name: "${COMPOSE_PROJECT_NAME}_db"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  adminer:
+    image: adminer
+    container_name: "${COMPOSE_PROJECT_NAME}_adminer"
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_adminer.rule=Host(`adminer.${PROJECT_BASE_URL}`)"
+    restart: always
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: "${COMPOSE_PROJECT_NAME}_mailhog"
+    labels:
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_mailhog.loadbalancer.server.port=8025"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_mailhog.rule=Host(`mailhog.${PROJECT_BASE_URL}`)"
+  
+  traefik:
+    image: traefik:v2.0
+    container_name: "${COMPOSE_PROJECT_NAME}_traefik"
+    command: --api.insecure=true --providers.docker
+    ports:
+      - 8000:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  
+  portainer:
+    image: portainer/portainer
+    container_name: "${COMPOSE_PROJECT_NAME}_portainer"
+    command: --no-auth -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_portainer.rule=Host(`portainer.${PROJECT_BASE_URL}`)"
+
+volumes:
+  webdata:
+  # sites:
+  # modules:
+  #   driver: local
+  #   driver_opts:
+  #     type: bind
+  #     device: ./_modules
+  # themes:
+  #   driver: local
+  #   driver_opts:
+  #     type: bind
+  #     device: ./_themes
