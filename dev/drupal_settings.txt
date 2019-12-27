@@ -1,0 +1,2 @@
+$settings['file_public_path'] = 'sites/default/files/public';
+$settings['file_private_path'] = 'sites/default/files/private';

@@ -39,8 +39,7 @@ ARG APP_CODE_PATH="/var/www/html"
 WORKDIR "$APP_CODE_PATH"
 
 RUN /tmp/scripts/cleanup.sh
-USER nginx:nginx
-
+# USER nginx:nginx
 
 EXPOSE 9000
 CMD ["php-fpm"]
