@@ -2,7 +2,7 @@
 /usr/local/bin/docker-entrypoint.sh
 composer install --no-dev
 
-chown -hR nginx:nginx /var/www/html && chmod -R 755 /var/html/web/sites/default
+chown -hR nginx:nginx /var/www/html && chmod -R 755 /var/www/html/web/sites/default
 echo "Starting application and webserver...";
 
 echo "php -v";
