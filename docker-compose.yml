@@ -11,8 +11,8 @@ services:
       NGINX_HOST: php
     user: root
     volumes:
-      - ./.config/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./.config/nginx/default.template:/etc/nginx/sites-available/default.template
+      - ./.dev/.config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./.dev/.config/nginx/default.template:/etc/nginx/sites-available/default.template
       - type: volume
         source: webdata
         target: /var/www/html
