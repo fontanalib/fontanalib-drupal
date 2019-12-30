@@ -1,6 +1,8 @@
 #!/bin/bash
 /usr/local/bin/docker-entrypoint.sh
+composer install --no-dev
 
+chown -hR nginx:nginx /var/www/html && chmod -R 755 /var/html/web/sites/default
 echo "Starting application and webserver...";
 
 echo "php -v";
@@ -17,11 +19,6 @@ echo "will start php";
 service php7.3-fpm start
 echo "php status below";
 service php7.3-fpm status
-
-# echo "will start mysql";
-# service mysql start
-# echo "mysql status below";
-# service mysql status
 
 echo "will start nginx";
 service nginx start

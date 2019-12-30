@@ -170,7 +170,7 @@ COPY ${SERVICE_DIR}/config/nginx /etc/nginx
 COPY ${SERVICE_DIR}/docker-run.sh /docker-run.sh
 
 # VOLUME ["/var/lib/mysql", "/var/www/html", "/etc/nginx/ssl"]
-
+# RUN chown -hR nginx:nginx /var/www/html && chmod -R 755 /var/html/web/sites/default
 EXPOSE 80 443
-
+WORKDIR /var/www/html
 CMD ["/bin/bash", "docker-run.sh"]

@@ -41,6 +41,6 @@ WORKDIR "$APP_CODE_PATH"
 RUN composer install
 RUN /tmp/scripts/cleanup.sh
 # USER nginx:nginx
-# RUN chown -hR nginx:nginx /var/www/html && chmod -R 755 /var/html/web/sites/default
+RUN chown -hR nginx:nginx /var/www/html && chmod -R 755 /var/html/web/sites/default
 EXPOSE 9000
 CMD ["php-fpm"]
