@@ -5,30 +5,58 @@ services:
     image: nginx:alpine
     container_name: "${COMPOSE_PROJECT_NAME}_nginx"
     environment:
-      NGINX_ROOT: /var/www/html/web
-      APP_USER: $APP_USER
-      APP_GROUP: $APP_GROUP
-      NGINX_HOST: php
-    user: root
+      NGINX_ROOT: ${NGINX_ROOT}
+      NGINX_HOST: staging
     volumes:
-      - ./.dev/.config/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./.dev/.config/nginx/default.template:/etc/nginx/sites-available/default.template
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/sites-available/default.template:/etc/nginx/sites-available/default.template
+      - ./config/nginx/sites-available/dev.conf:/etc/nginx/sites-available/dev.conf
       - type: volume
-        source: webdata
-        target: /var/www/html
+        source: development
+        target: /project/drupal
+      - type: volume
+        source: production
+        target: ${PROJECT_PATH}
     depends_on:
-        - php
+        - staging
+        - dev
     command: /bin/sh -c "envsubst '$${NGINX_ROOT} $${NGINX_HOST}' < /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default.conf && nginx -g 'daemon off;'"
+    ports:
+      - 81:81
     labels:
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_nginx.rule=Host(`${PROJECT_BASE_URL}`)"
+      - traefik.http.routers.production.service=production
+      - traefik.http.routers.dev.service=dev
+      - traefik.http.services.production.loadbalancer.server.port=80
+      - traefik.http.routers.production.rule=Host(`${PROJECT_BASE_URL}`)
+      - traefik.http.services.dev.loadbalancer.server.port=81
+      - traefik.http.routers.dev.rule=Host(`dev.${PROJECT_BASE_URL}`)
 
-  php:
+  staging:
+    container_name: "${COMPOSE_PROJECT_NAME}_staging"
     build:
       context: .
-      dockerfile: ./php/Dockerfile
-    user: root
+      dockerfile: ./staging/Dockerfile
+      args:
+        ARG_APP_USER: ${APP_USER}
+        ARG_APP_GROUP: ${APP_GROUP}
+        ARG_APP_USER_ID: ${APP_USER_ID}
+        ARG_APP_GROUP_ID: ${APP_GROUP_ID}
+        APP_CODE_PATH: ${PROJECT_PATH}
     volumes:
-      - webdata:/var/www/html
+      - type: volume
+        source: production
+        target: ${PROJECT_PATH}
+  dev:
+    container_name: "${COMPOSE_PROJECT_NAME}_dev"
+    build:
+      context: .
+      dockerfile: ./dev/Dockerfile
+      args:
+        ARG_APP_USER: ${APP_USER}
+        ARG_APP_GROUP: ${APP_GROUP}
+    volumes:
+      - development:/project/drupal
+      - production:/project/production
 
   db:
     image: mariadb
@@ -39,15 +67,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
-  staging:
-    build:
-      context: .
-      dockerfile: ./staging/Dockerfile
-    container_name: "${COMPOSE_PROJECT_NAME}_staging"
-    user: root
-    labels:
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_staging.rule=Host(`staging.${PROJECT_BASE_URL}`)"
 
   adminer:
     image: adminer
@@ -62,13 +81,16 @@ services:
     labels:
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_mailhog.loadbalancer.server.port=8025"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_mailhog.rule=Host(`mailhog.${PROJECT_BASE_URL}`)"
-  
+
   traefik:
     image: traefik:v2.0
     container_name: "${COMPOSE_PROJECT_NAME}_traefik"
-    command: --api.insecure=true --providers.docker
+    command: 
+      - "--api.insecure=true"
+      - "--providers.docker=true"
     ports:
       - 8000:80
+      - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   
@@ -79,7 +101,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_portainer.rule=Host(`portainer.${PROJECT_BASE_URL}`)"
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_portainer.rule=Host(`portainer.${PROJECT_BASE_URL}`)
 
 volumes:
-  webdata:
+  development:
+  production:
