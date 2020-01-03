@@ -23,6 +23,7 @@ chmod uga+x /usr/local/bin/install-php-extensions && sync && install-php-extensi
 ;
 
 RUN apk update && apk add --no-cache \
+    sudo \
     tzdata \
     bind-tools \
     curl \

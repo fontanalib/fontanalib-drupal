@@ -22,6 +22,6 @@ RUN mkdir -p web/sites/default/files
 USER root
 RUN chmod 775 /project/drupal/web/sites/default/files
 USER drupal
-
+RUN mkdir -p /project/drupal/web/sites/modules/custom && mkdir -p /project/drupal/web/sites/themes/custom
 EXPOSE 9000
 CMD ["php-fpm"]
