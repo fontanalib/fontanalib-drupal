@@ -6,36 +6,44 @@ services:
     container_name: "${COMPOSE_PROJECT_NAME}_nginx"
     environment:
       NGINX_ROOT: ${NGINX_ROOT}
-      NGINX_HOST: staging
+      NGINX_HOST: php
     volumes:
-      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./config/nginx/sites-available/default.template:/etc/nginx/sites-available/default.template
-      - ./config/nginx/sites-available/dev.conf:/etc/nginx/sites-available/dev.conf
+      # - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      # - ./config/nginx/sites-available/default.template:/etc/nginx/sites-available/default.template
+      - ./config/nginx/sites-available/production.conf:/etc/nginx/conf.d/production.conf
+      - ./config/nginx/sites-available/staging.conf:/etc/nginx/conf.d/staging.conf
+      - ./config/nginx/sites-available/dev.conf:/etc/nginx/conf.d/dev.conf
       - type: volume
         source: development
         target: /project/drupal
       - type: volume
         source: production
-        target: ${PROJECT_PATH}
+        target: /project/production
+      - ./.drupal/:${PROJECT_PATH}
     depends_on:
-        - staging
         - dev
-    command: /bin/sh -c "envsubst '$${NGINX_ROOT} $${NGINX_HOST}' < /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default.conf && nginx -g 'daemon off;'"
-    ports:
-      - 81:81
+        - php
+    # command: /bin/sh -c "envsubst '$${NGINX_ROOT} $${NGINX_HOST} $${NGINX_PORT}' < /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default.conf && nginx -g 'daemon off;'"
+    # ports:
+    #   - 81:81
+    #   - 82:82
+    restart: always
     labels:
       - traefik.http.routers.production.service=production
+      - traefik.http.routers.staging.service=staging
       - traefik.http.routers.dev.service=dev
       - traefik.http.services.production.loadbalancer.server.port=80
       - traefik.http.routers.production.rule=Host(`${PROJECT_BASE_URL}`)
-      - traefik.http.services.dev.loadbalancer.server.port=81
+      - traefik.http.services.staging.loadbalancer.server.port=80
+      - traefik.http.routers.staging.rule=Host(`staging.${PROJECT_BASE_URL}`)
+      - traefik.http.services.dev.loadbalancer.server.port=80
       - traefik.http.routers.dev.rule=Host(`dev.${PROJECT_BASE_URL}`)
 
-  staging:
-    container_name: "${COMPOSE_PROJECT_NAME}_staging"
+  php:
+    container_name: "${COMPOSE_PROJECT_NAME}_php"
     build:
       context: .
-      dockerfile: ./staging/Dockerfile
+      dockerfile: ./php/Dockerfile
       args:
         ARG_APP_USER: ${APP_USER}
         ARG_APP_GROUP: ${APP_GROUP}
@@ -43,9 +51,9 @@ services:
         ARG_APP_GROUP_ID: ${APP_GROUP_ID}
         APP_CODE_PATH: ${PROJECT_PATH}
     volumes:
-      - type: volume
-        source: production
-        target: ${PROJECT_PATH}
+      - production:/project/production
+      - ./.drupal:/var/www/html
+
   dev:
     container_name: "${COMPOSE_PROJECT_NAME}_dev"
     build:

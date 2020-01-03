@@ -45,11 +45,10 @@ ARG ARG_APP_GROUP=www-data
 ARG ARG_APP_USER_ID=82
 ARG ARG_APP_GROUP_ID=82
 
-COPY ./staging/scripts/*  /tmp/scripts/
+COPY ./php/scripts/*  /tmp/scripts/
 RUN chmod +x -R /tmp/scripts/
 
 RUN /tmp/scripts/create_user.sh ${ARG_APP_USER} ${ARG_APP_GROUP} ${ARG_APP_USER_ID} ${ARG_APP_GROUP_ID}
-
 
 # php config
 COPY ./config/php/conf.d/*  /usr/local/etc/php/conf.d/
@@ -58,11 +57,16 @@ COPY ./config/php/conf.d/*  /usr/local/etc/php/conf.d/
 COPY ./config/php/php-fpm.d/* /usr/local/etc/php-fpm.d
 RUN /tmp/scripts/modify_config.sh /usr/local/etc/php-fpm.d/pool.conf \
     "__APP_USER" \
-    "${APP_USER}" \
+    "${ARG_APP_USER}" \
  && /tmp/scripts/modify_config.sh /usr/local/etc/php-fpm.d/pool.conf \
     "__APP_GROUP" \
-    "${APP_GROUP}" \
+    "${ARG_APP_GROUP}" \
 ;
+ARG DRUPAL_USER=drupal
+ARG DRUPAL_USER_ID=828
+
+RUN useradd -G ${ARG_APP_GROUP} ${DRUPAL_USER}
+
 
 # workdir
 ARG APP_CODE_PATH="/var/www/html"
