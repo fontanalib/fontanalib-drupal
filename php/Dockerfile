@@ -45,7 +45,7 @@ ARG ARG_APP_GROUP=www-data
 ARG ARG_APP_USER_ID=82
 ARG ARG_APP_GROUP_ID=82
 
-COPY ./php/scripts/*  /tmp/scripts/
+COPY ./php/scripts/  /tmp/scripts/
 RUN chmod +x -R /tmp/scripts/
 
 RUN /tmp/scripts/create_user.sh ${ARG_APP_USER} ${ARG_APP_GROUP} ${ARG_APP_USER_ID} ${ARG_APP_GROUP_ID}
@@ -65,7 +65,7 @@ RUN /tmp/scripts/modify_config.sh /usr/local/etc/php-fpm.d/pool.conf \
 ARG DRUPAL_USER=drupal
 ARG DRUPAL_USER_ID=828
 
-RUN useradd -G ${ARG_APP_GROUP} ${DRUPAL_USER}
+RUN useradd -m -g users -G ${ARG_APP_GROUP} ${DRUPAL_USER}
 
 
 # workdir
