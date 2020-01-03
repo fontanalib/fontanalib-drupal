@@ -7,19 +7,21 @@ RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/lo
 
 
 RUN mkdir -p /project/drupal && mkdir -p /project/production && chown -R drupal:${ARG_APP_GROUP} /project && chmod g+s /project
-USER drupal
-# USER drupal
 COPY ./composer.json /project/drupal
+
 # COPY ./dev/copy.sh /copy.sh
 # COPY ./dev/drupal_settings.txt /tmp/drupal_settings.txt
 
 WORKDIR /project/drupal
+RUN chown drupal:users composer.json
 
+USER drupal
 RUN composer install
 RUN mkdir -p web/sites/default/files
 
+USER root
 RUN chmod 775 /project/drupal/web/sites/default/files
-
+USER drupal
 
 EXPOSE 9000
 CMD ["php-fpm"]
