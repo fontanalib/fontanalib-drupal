@@ -8,9 +8,16 @@ services:
       dockerfile: ./staging/Dockerfile
     container_name: "${COMPOSE_PROJECT_NAME}_staging"
     volumes:
-      - ./.drupal:/var/www/html
+      # - ./.drupal:/var/www/html
+      - production:/var/www/html/
     labels:
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_staging.rule=Host(`${PROJECT_BASE_URL}`)"
+      # - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_staging.rule=Host(`${PROJECT_BASE_URL}`)"
+      - traefik.http.routers.staging.service=staging
+      - traefik.http.services.staging.loadbalancer.server.port=80
+      - traefik.http.routers.staging.rule=Host(`${PROJECT_BASE_URL}`)
+      - traefik.http.routers.db.service=db
+      - traefik.http.services.db.loadbalancer.server.port=80
+      - traefik.http.routers.db.rule=Host(`db.${PROJECT_BASE_URL}`)
 
 # Development Container
   php:
@@ -97,3 +104,4 @@ services:
 
 volumes:
   development:
+  production:

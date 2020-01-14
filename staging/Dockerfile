@@ -67,13 +67,20 @@ RUN apt-get install -y \
 # RUN apt --no-install-recommends install phpmyadmin
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 
-COPY ${SERVICE_DIR}/config/nginx /etc/nginx
-COPY ${SERVICE_DIR}/docker-run.sh /docker-run.sh
 ARG DRUPAL_USER=drupal
 ARG DRUPAL_USER_ID=828
 
 RUN useradd -m -G users,nginx ${DRUPAL_USER}
 RUN chown -R drupal:users /usr/local/bin/composer
+
+RUN mkdir -p /var/www/adminer && \
+  curl -s -o /var/www/adminer/index.php -L "http://www.adminer.org/latest.php" && \
+  chown -R drupal:nginx /var/www/adminer
+
+
+COPY ${SERVICE_DIR}/docker-run.sh /docker-run.sh
+COPY ${SERVICE_DIR}/config/nginx /etc/nginx
+
 EXPOSE 80 443
 WORKDIR /var/www/html
 USER root
