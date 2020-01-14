@@ -12,6 +12,19 @@
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
+        },
+        {
+          "type": "package",
+          "package": {
+            "name": "fontanalib/fontanalib",
+            "version": "master",
+            "type": "drupal-custom-module",
+            "source": {
+              "type": "git",
+              "url": "https://github.com/fontanalib/fontanalib.git",
+              "reference": "master"
+            }
+          }
         }
     ],
     "require": {
@@ -25,7 +38,8 @@
         "drupal/feeds_tamper": "^2.0",
         "drupal/paragraphs": "^1.10",
         "drupal/pathauto": "^1.6",
-        "drupal/token": "^1.6"
+        "drupal/token": "^1.6",
+        "fontanalib/fontanalib": "master"
     },
     "require-dev": {
         "drupal/console": "~1.0",
