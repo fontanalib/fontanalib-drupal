@@ -1,6 +1,6 @@
 ARG TARGET_PHP_VERSION=7.3-fpm
 FROM php:${TARGET_PHP_VERSION}-alpine
-
+# USER root
 RUN set -ex; \
 	\
   apk update; \
@@ -63,22 +63,41 @@ RUN /tmp/scripts/modify_config.sh /usr/local/etc/php-fpm.d/pool.conf \
     "__APP_GROUP" \
     "${ARG_APP_GROUP}" \
 ;
+RUN printf "\nopcache.enable = 0" >> /usr/local/etc/php/conf.d/zz-drupal.ini
 ARG DRUPAL_USER=drupal
 ARG DRUPAL_USER_ID=828
 
 RUN useradd -m -g users -G ${ARG_APP_GROUP} ${DRUPAL_USER}
 
+RUN curl -sS https://getcomposer.org/installer | php && \
+    mv composer.phar /usr/local/bin/composer && \
+    chown -R drupal:users /usr/local/bin/composer
 
 # workdir
 ARG APP_CODE_PATH="/var/www/html"
-
+COPY ./composer.json $APP_CODE_PATH
 WORKDIR "$APP_CODE_PATH"
 
+
+#mkdir -p /project/drupal && mkdir -p /project/production && 
+
+
+RUN chown drupal:${ARG_APP_GROUP} composer.json
+
+USER drupal
+RUN composer install
+
+RUN mkdir -p $APP_CODE_PATH/web/sites/default/files
+# RUN chown -R drupal:nginx web
+RUN mkdir -p $APP_CODE_PATH/web/sites/modules/custom && mkdir -p $APP_CODE_PATH/web/sites/themes/custom
+RUN chown -R drupal:${ARG_APP_GROUP} ${APP_CODE_PATH}/web && chmod g+s ${APP_CODE_PATH}/web
+RUN chmod 775 $APP_CODE_PATH/web/sites/default/files
+USER root
 RUN rm -rf /var/lib/apt/lists/* \
        /tmp/* \
        /var/tmp/* \
        /var/log/lastlog \
        /var/log/faillog
-
+USER drupal
 EXPOSE 9000
 CMD ["php-fpm"]
