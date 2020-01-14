@@ -14,6 +14,10 @@ mariadb -V
 
 # echo "preparing nginx default_site.conf file"
 # sed -i "s/DOMAIN/$DOMAIN/" /etc/nginx/default_site.conf
+echo "will start mariadb";
+service mysql start
+echo "mariadb status below";
+service mysql status
 
 echo "will start php";
 service php7.3-fpm start
@@ -24,8 +28,3 @@ echo "will start nginx";
 service nginx start
 echo "nginx status below";
 service nginx status 
-
-echo "will start mariadb";
-service mysql start
-echo "mariadb status below";
-service mysql status
