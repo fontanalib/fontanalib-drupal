@@ -89,7 +89,7 @@ RUN composer install
 
 RUN mkdir -p $APP_CODE_PATH/web/sites/default/files
 # RUN chown -R drupal:nginx web
-RUN mkdir -p $APP_CODE_PATH/web/sites/modules/custom && mkdir -p $APP_CODE_PATH/web/sites/themes/custom
+RUN mkdir -p $APP_CODE_PATH/web/modules/custom && mkdir -p $APP_CODE_PATH/web/themes/custom
 RUN chown -R drupal:${ARG_APP_GROUP} ${APP_CODE_PATH}/web && chmod g+s ${APP_CODE_PATH}/web
 RUN chmod 775 $APP_CODE_PATH/web/sites/default/files
 USER root
