@@ -25,5 +25,7 @@ service nginx start
 echo "nginx status below";
 service nginx status 
 
+echo "will start mariadb";
+service mysql start
 echo "mariadb status below";
 service mysql status
