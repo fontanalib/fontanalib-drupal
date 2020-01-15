@@ -40,7 +40,9 @@ RUN apk update && apk add --no-cache \
 ;
 # set timezone
 ARG TZ=America/New_York
-RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime 
+RUN dpkg-reconfigure -f noninteractive tzdata
+# RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
 ARG ARG_APP_USER=www-data
 ARG ARG_APP_GROUP=www-data
 ARG ARG_APP_USER_ID=82
