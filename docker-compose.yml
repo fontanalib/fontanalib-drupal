@@ -1,23 +1,23 @@
 version: "3.7"
 
 services:
-  # Staging Container (LEMP) - should mirror production server
-  staging:
-    build:
-      context: .
-      dockerfile: ./staging/Dockerfile
-    container_name: "${COMPOSE_PROJECT_NAME}_staging"
-    volumes:
-      # - ./.drupal:/var/www/html
-      - production:/var/www/html/
-    labels:
-      # - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_staging.rule=Host(`${PROJECT_BASE_URL}`)"
-      - traefik.http.routers.staging.service=staging
-      - traefik.http.services.staging.loadbalancer.server.port=80
-      - traefik.http.routers.staging.rule=Host(`${PROJECT_BASE_URL}`)
-      - traefik.http.routers.db.service=db
-      - traefik.http.services.db.loadbalancer.server.port=80
-      - traefik.http.routers.db.rule=Host(`db.${PROJECT_BASE_URL}`)
+  # # Staging Container (LEMP) - should mirror production server
+  # staging:
+  #   build:
+  #     context: .
+  #     dockerfile: ./staging/Dockerfile
+  #   container_name: "${COMPOSE_PROJECT_NAME}_staging"
+  #   volumes:
+  #     # - ./.drupal:/var/www/html
+  #     - production:/var/www/html/
+  #   labels:
+  #     # - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_staging.rule=Host(`${PROJECT_BASE_URL}`)"
+  #     - traefik.http.routers.staging.service=staging
+  #     - traefik.http.services.staging.loadbalancer.server.port=80
+  #     - traefik.http.routers.staging.rule=Host(`${PROJECT_BASE_URL}`)
+  #     - traefik.http.routers.db.service=db
+  #     - traefik.http.services.db.loadbalancer.server.port=80
+  #     - traefik.http.routers.db.rule=Host(`db.${PROJECT_BASE_URL}`)
 
 # Development Container
   php:
@@ -33,8 +33,15 @@ services:
         ARG_APP_USER_ID: ${APP_USER_ID}
         ARG_APP_GROUP_ID: ${APP_GROUP_ID}
         APP_CODE_PATH: /var/www/html
+    environment:
+      TZ: ${TIMEZONE}
     volumes:
       - development:/var/www/html
+      - npm:/root/.npm/
+    labels:
+      - traefik.http.routers.pattern.service=pattern
+      - traefik.http.services.pattern.loadbalancer.server.port=8080
+      - traefik.http.routers.pattern.rule=Host(`pattern.${PROJECT_BASE_URL}`)
 
   nginx:
     image: nginx:alpine
@@ -66,6 +73,9 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - data:/var/lib/mysql
+      - ./config/mysql/conf.d/drupal.cnf:/etc/mysql/conf.d/drupal.cnf
 
   adminer:
     image: adminer
@@ -89,7 +99,7 @@ services:
       - "--providers.docker=true"
     ports:
       - 8000:80
-      - 8080:8080
+      - 5000:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   
@@ -105,3 +115,5 @@ services:
 volumes:
   development:
   production:
+  data:
+  npm:

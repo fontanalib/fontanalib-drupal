@@ -1,6 +1,11 @@
-# #!/bin/sh
-# set -e
+#!/bin/sh
+set -e
+chown -R drupal:nginx /var/www/html/web
 
-# mkdir -p /var/www/html && chown www-data:www-data /var/www/html && chmod g+ws /var/www/html
 
-# exec "$@"
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+	set -- php-fpm "$@"
+fi
+
+exec "$@"

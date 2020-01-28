@@ -14,17 +14,8 @@
             "url": "https://packages.drupal.org/8"
         },
         {
-          "type": "package",
-          "package": {
-            "name": "fontanalib/fontanalib",
-            "version": "master",
-            "type": "drupal-custom-module",
-            "source": {
-              "type": "git",
-              "url": "https://github.com/fontanalib/fontanalib.git",
-              "reference": "master"
-            }
-          }
+          "type": "git",
+          "url": "https://github.com/fontanalib/fontanalib.git"
         }
     ],
     "require": {
@@ -39,11 +30,13 @@
         "drupal/paragraphs": "^1.10",
         "drupal/pathauto": "^1.6",
         "drupal/token": "^1.6",
-        "fontanalib/fontanalib": "master"
+        "fontanalib/fontanalib": "dev-dev",
+        "drupal/nodeaccess": "^1.0"
     },
     "require-dev": {
         "drupal/console": "~1.0",
-        "drush/drush": "^10.1"
+        "drush/drush": "^10.1",
+        "drupal/devel":"^3.0"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -67,7 +60,8 @@
             "web/themes/contrib/{$name}": ["type:drupal-theme"],
             "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
             "web/modules/custom/{$name}": ["type:drupal-custom-module"],
-            "web/themes/custom/{$name}": ["type:drupal-custom-theme"]
+            "web/themes/custom/{$name}": ["type:drupal-custom-theme"],
+            "web/profiles/custom/{$name}": ["type:drupal-custom-profile"]
         }
     }
 }
