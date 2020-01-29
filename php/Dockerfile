@@ -1,6 +1,6 @@
 ARG TARGET_PHP_VERSION=7.3-fpm
 FROM php:${TARGET_PHP_VERSION}-alpine
-# USER root
+
 RUN set -ex; \
 	\
   apk update; \
@@ -21,7 +21,7 @@ chmod uga+x /usr/local/bin/install-php-extensions && sync && install-php-extensi
     xdebug \
     yaml \
 ;
-# npm install -g gulp gulp-cli
+
 RUN apk update && apk add --no-cache \
     sudo \
     tzdata \
@@ -49,6 +49,7 @@ RUN apk update && apk add --no-cache \
     unzip \
     zlib \
 ;
+
 ENV NODE_VERSION 12.14.1
 
 RUN apk add --no-cache --virtual .build-deps \
@@ -114,28 +115,12 @@ RUN apk add --no-cache --virtual .build-deps \
   && rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
   && apk del .build-deps
 
-# ENV YARN_VERSION 1.21.1
 
-# RUN apk add --no-cache --virtual .build-deps-yarn curl gnupg tar \
-#   && for key in \
-#     6A010C5166006599AA17F08146C2130DFD2497F5 \
-#   ; do \
-#     gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" || \
-#     gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-#     gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
-#   done \
-#   && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
-#   && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz.asc" \
-#   && gpg --batch --verify yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
-#   && mkdir -p /opt \
-#   && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
-#   && ln -s /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
-#   && ln -s /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
-#   && rm yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
-#   && apk del .build-deps-yarn
 # set timezone
 ARG TZ=America/New_York
-RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
+# RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
+RUN cp -R /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    echo "${TZ}" > /etc/timezone
 # # RUN dpkg-reconfigure -f noninteractive tzdata
 # RUN echo ${TZ} >/etc/timezone && dpkg-reconfigure -f noninteractive tzdata
 # set timezone
@@ -167,12 +152,16 @@ RUN /tmp/scripts/modify_config.sh /usr/local/etc/php-fpm.d/pool.conf \
     "__APP_GROUP" \
     "${ARG_APP_GROUP}" \
 ;
-# RUN printf "\nopcache.enable = 0" >> /usr/local/etc/php/conf.d/zz-drupal.ini
+
+RUN printf "\nopcache.enable = 0" >> /usr/local/etc/php/conf.d/zz-drupal.ini
+
 ARG DRUPAL_USER=drupal
 ARG DRUPAL_USER_ID=828
+RUN addgroup sudo
+RUN useradd -m -g ${ARG_APP_GROUP} -G users,sudo ${DRUPAL_USER}
+RUN echo "%sudo ALL=(ALL) ALL" >> /etc/sudoers
 
-RUN useradd -m -g users -G ${ARG_APP_GROUP} ${DRUPAL_USER}
-
+RUN npm install --global gulp-cli@latest
 RUN curl -sS https://getcomposer.org/installer | php && \
     mv composer.phar /usr/local/bin/composer && \
     chown -R drupal:users /usr/local/bin/composer
@@ -183,33 +172,32 @@ ENV APP_ROOT="${APP_CODE_PATH}"
 COPY ./composer.json $APP_CODE_PATH
 WORKDIR "$APP_CODE_PATH"
 
-
-#mkdir -p /project/drupal && mkdir -p /project/production && 
-
-
 RUN chown drupal:${ARG_APP_GROUP} composer.json
 
 USER drupal
 RUN composer install
-
 RUN mkdir -p $APP_CODE_PATH/web/sites/default/files
 # RUN chown -R drupal:nginx web
 RUN mkdir -p $APP_CODE_PATH/web/modules/custom && mkdir -p $APP_CODE_PATH/web/themes/custom
+# RUN chgrp -R nginx ${APP_CODE_PATH}/web && chmod -R g+s ${APP_CODE_PATH}/web
 RUN chown -R drupal:${ARG_APP_GROUP} ${APP_CODE_PATH}/web && chmod g+s ${APP_CODE_PATH}/web
 RUN chmod 775 $APP_CODE_PATH/web/sites/default/files
 USER root
 
 
-RUN rm -rf /var/lib/apt/lists/* \
+RUN apk del tzdata && \
+  rm -rf /var/lib/apt/lists/* \
        /tmp/* \
        /var/tmp/* \
        /var/log/lastlog \
        /var/log/faillog
-RUN npm install --global gulp-cli@latest
+
+
+
+COPY ./php/docker-entrypoint.sh /
+RUN chown drupal:users /docker-entrypoint.sh && chmod +x -R /docker-entrypoint.sh
 
 USER drupal
-COPY ./php/docker-entrypoint.sh /
-EXPOSE 9000 8080
-
+EXPOSE 9000 3000
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["php-fpm"]
