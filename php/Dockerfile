@@ -118,18 +118,9 @@ RUN apk add --no-cache --virtual .build-deps \
 
 # set timezone
 ARG TZ=America/New_York
-# RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
 RUN cp -R /usr/share/zoneinfo/${TZ} /etc/localtime && \
     echo "${TZ}" > /etc/timezone
-# # RUN dpkg-reconfigure -f noninteractive tzdata
-# RUN echo ${TZ} >/etc/timezone && dpkg-reconfigure -f noninteractive tzdata
-# set timezone
-# RUN printf "%s\n"                                              \
-#        "tzdata  tzdata/Areas    select America"            \
-#        "tzdata  tzdata/Zones/America    select New_York"   \
-#        | debconf-set-selections
-# RUN DEBIAN_FRONTEND=noninteractive apt-get install --reinstall tzdata
-# RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
+
 ARG ARG_APP_USER=www-data
 ARG ARG_APP_GROUP=www-data
 ARG ARG_APP_USER_ID=82
@@ -159,7 +150,7 @@ ARG DRUPAL_USER=drupal
 ARG DRUPAL_USER_ID=828
 RUN addgroup sudo
 RUN useradd -m -g ${ARG_APP_GROUP} -G users,sudo ${DRUPAL_USER}
-RUN echo "%sudo ALL=(ALL) ALL" >> /etc/sudoers
+RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 RUN npm install --global gulp-cli@latest
 RUN curl -sS https://getcomposer.org/installer | php && \
@@ -176,27 +167,23 @@ RUN chown drupal:${ARG_APP_GROUP} composer.json
 
 USER drupal
 RUN composer install
+
 RUN mkdir -p $APP_CODE_PATH/web/sites/default/files
-# RUN chown -R drupal:nginx web
 RUN mkdir -p $APP_CODE_PATH/web/modules/custom && mkdir -p $APP_CODE_PATH/web/themes/custom
-# RUN chgrp -R nginx ${APP_CODE_PATH}/web && chmod -R g+s ${APP_CODE_PATH}/web
+
 RUN chown -R drupal:${ARG_APP_GROUP} ${APP_CODE_PATH}/web && chmod g+s ${APP_CODE_PATH}/web
 RUN chmod 775 $APP_CODE_PATH/web/sites/default/files
+
 USER root
-
-
-RUN apk del tzdata && \
-  rm -rf /var/lib/apt/lists/* \
+RUN rm -rf /var/lib/apt/lists/* \
        /tmp/* \
        /var/tmp/* \
        /var/log/lastlog \
        /var/log/faillog
 
-
-
 COPY ./php/docker-entrypoint.sh /
 RUN chown drupal:users /docker-entrypoint.sh && chmod +x -R /docker-entrypoint.sh
-
+ENV TZ="${TZ}"
 USER drupal
 EXPOSE 9000 3000
 ENTRYPOINT ["/docker-entrypoint.sh"]
