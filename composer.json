@@ -26,17 +26,23 @@
         "drupal/core-recommended": "^8.8",
         "drupal/feeds": "^3.0",
         "drupal/feeds_ex": "^1.0",
+        "drupal/feeds_para_mapper": "1.x-dev",
         "drupal/feeds_tamper": "^2.0",
+        "drupal/graphql": "^4.0",
+        "drupal/jsonapi_extras": "^3.13",
+        "drupal/nodeaccess": "^1.0",
         "drupal/paragraphs": "^1.10",
         "drupal/pathauto": "^1.6",
         "drupal/token": "^1.6",
         "fontanalib/fontanalib": "dev-dev",
-        "drupal/nodeaccess": "^1.0"
+        "fourkitchens/emulsify": "^3.1"
     },
     "require-dev": {
+        "drupal/config_split": "^1.4",
         "drupal/console": "~1.0",
+        "drupal/devel": "^3.0",
         "drush/drush": "^10.1",
-        "drupal/devel":"^3.0"
+        "kint-php/kint": "^3.3"
     },
     "conflict": {
         "drupal/drupal": "*"

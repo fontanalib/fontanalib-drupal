@@ -39,6 +39,7 @@ services:
       - development:/var/www/html
       # - npm:/root/.npm/
       - npm:/home/drupal/npm-global
+      - ./php/zzzz-disable-cache.ini:/usr/local/etc/php/conf.d/zzzz-disable-cache.ini
     ports:
       - "3000:3000"
       - "3001:3001"
