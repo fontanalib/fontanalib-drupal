@@ -1,27 +1,5 @@
-ARG TARGET_PHP_VERSION=7.3-fpm
+ARG TARGET_PHP_VERSION=7.4-fpm
 FROM php:${TARGET_PHP_VERSION}-alpine
-
-RUN set -ex; \
-	\
-  apk update; \
-  apk add --no-cache openssl wget; \
-  \
-# # download helper script
-# @see https://github.com/mlocati/docker-php-extension-installer/
-wget -q -O /usr/local/bin/install-php-extensions https://raw.githubusercontent.com/mlocati/docker-php-extension-installer/master/install-php-extensions \
-    || (echo "Failed while downloading php extension installer!"; exit 1); \
-  \
-chmod uga+x /usr/local/bin/install-php-extensions && sync && install-php-extensions \
-    gd \
-    imagick \
-    opcache \
-    pdo_mysql \
-		pdo_pgsql \
-    zip \
-    xdebug \
-    yaml \
-;
-
 RUN apk update && apk add --no-cache \
     sudo \
     tzdata \
@@ -47,7 +25,7 @@ RUN apk update && apk add --no-cache \
     nasm \
     pkgconfig \
     procps \
-    python \
+    python3 \
     shadow \
     strace \
     sysstat \
@@ -55,6 +33,28 @@ RUN apk update && apk add --no-cache \
     zlib \
     zlib-dev \
 ;
+RUN set -ex; \
+	\
+  apk update; \
+  apk add --no-cache openssl wget; \
+  \
+# # download helper script
+# @see https://github.com/mlocati/docker-php-extension-installer/
+wget -q -O /usr/local/bin/install-php-extensions https://raw.githubusercontent.com/mlocati/docker-php-extension-installer/master/install-php-extensions \
+    || (echo "Failed while downloading php extension installer!"; exit 1); \
+  \
+chmod uga+x /usr/local/bin/install-php-extensions && sync && install-php-extensions \
+    gd \
+    imagick \
+    opcache \
+    pdo_mysql \
+		pdo_pgsql \
+    zip \
+    xdebug \
+    yaml \
+;
+
+
 # set timezone
 ARG TZ=America/New_York
 RUN cp -R /usr/share/zoneinfo/${TZ} /etc/localtime && \
@@ -284,10 +284,16 @@ RUN chown drupal:${ARG_APP_GROUP} composer.json
 
 # install drupal project via composer
 USER drupal
+ARG ACCESS_TOKEN=""
+
+RUN composer config --global github-oauth.github.com $ACCESS_TOKEN
 RUN composer install
 
 #set directory permissions
 RUN mkdir -p $APP_CODE_PATH/web/sites/default/files
+# RUN mkdir -p $APP_CODE_PATH/web/sites/default/settings && cp $APP_CODE_PATH/web/sites/default/settings.php $APP_CODE_PATH/web/sites/default/settings/settings.shared.php
+# RUN chmod 644 $APP_CODE_PATH/web/sites/default/settings/settings.shared.php
+
 RUN mkdir -p $APP_CODE_PATH/web/modules/custom && mkdir -p $APP_CODE_PATH/web/themes/custom
 
 RUN chown -R drupal:${ARG_APP_GROUP} ${APP_CODE_PATH}/web && chmod g+s ${APP_CODE_PATH}/web
@@ -308,7 +314,7 @@ USER drupal
 ENV TZ="${TZ}"
 RUN mkdir ~/npm-global
 RUN npm config set prefix '~/npm-global'
-RUN npm install --global @vue/cli
+# RUN npm install --global @vue/cli
 # gulp-cli@latest node-sass@latest
 RUN export PATH=$PATH:/home/drupal/npm-global/bin
 

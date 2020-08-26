@@ -33,6 +33,7 @@ services:
         ARG_APP_USER_ID: ${APP_USER_ID}
         ARG_APP_GROUP_ID: ${APP_GROUP_ID}
         APP_CODE_PATH: /var/www/html
+        ACCESS_TOKEN: ${GITHUB_ACCESS_TOKEN}
     environment:
       TZ: ${TIMEZONE}
     volumes:

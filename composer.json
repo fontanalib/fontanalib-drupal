@@ -1,73 +1,89 @@
 {
-    "name": "drupal/recommended-project",
-    "description": "Project template for Drupal 8 projects with a relocated document root",
-    "type": "project",
-    "license": "GPL-2.0-or-later",
-    "homepage": "https://www.drupal.org/project/drupal",
-    "support": {
-        "docs": "https://www.drupal.org/docs/user_guide/en/index.html",
-        "chat": "https://www.drupal.org/node/314178"
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://packages.drupal.org/8"
-        },
-        {
-          "type": "git",
-          "url": "https://github.com/fontanalib/fontanalib.git"
-        }
-    ],
-    "require": {
-        "composer/installers": "^1.2",
-        "drupal/admin_toolbar": "^2.0",
-        "drupal/bootstrap": "^3.21",
-        "drupal/core-composer-scaffold": "^8.8",
-        "drupal/core-recommended": "^8.8",
-        "drupal/feeds": "^3.0",
-        "drupal/feeds_ex": "^1.0",
-        "drupal/feeds_para_mapper": "1.x-dev",
-        "drupal/feeds_tamper": "^2.0",
-        "drupal/graphql": "^4.0",
-        "drupal/jsonapi_extras": "^3.13",
-        "drupal/nodeaccess": "^1.0",
-        "drupal/paragraphs": "^1.10",
-        "drupal/pathauto": "^1.6",
-        "drupal/token": "^1.6",
-        "fontanalib/fontanalib": "dev-dev",
-        "fourkitchens/emulsify": "^3.1"
-    },
-    "require-dev": {
-        "drupal/config_split": "^1.4",
-        "drupal/console": "~1.0",
-        "drupal/devel": "^3.0",
-        "drush/drush": "^10.1",
-        "kint-php/kint": "^3.3"
-    },
-    "conflict": {
-        "drupal/drupal": "*"
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "config": {
-        "sort-packages": true
-    },
-    "extra": {
-        "drupal-scaffold": {
-            "locations": {
-                "web-root": "web/"
-            }
-        },
-        "installer-paths": {
-            "web/core": ["type:drupal-core"],
-            "web/libraries/{$name}": ["type:drupal-library"],
-            "web/modules/contrib/{$name}": ["type:drupal-module"],
-            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
-            "web/themes/contrib/{$name}": ["type:drupal-theme"],
-            "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
-            "web/modules/custom/{$name}": ["type:drupal-custom-module"],
-            "web/themes/custom/{$name}": ["type:drupal-custom-theme"],
-            "web/profiles/custom/{$name}": ["type:drupal-custom-profile"]
-        }
-    }
+  "name": "drupal/recommended-project",
+  "description": "Project template for Drupal 9 projects with a relocated document root",
+  "type": "project",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://www.drupal.org/project/drupal",
+  "support": {
+      "docs": "https://www.drupal.org/docs/user_guide/en/index.html",
+      "chat": "https://www.drupal.org/node/314178"
+  },
+  "repositories": [
+      {
+          "type": "composer",
+          "url": "https://packages.drupal.org/8"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/fontanalib/fontanalib"
+      }
+      ,
+      {
+        "type": "git",
+        "url": "https://github.com/fontanalib/frl"
+      }
+  ],
+  "require": {
+    "composer/installers": "^1.9",
+    "drupal/admin_toolbar": "^2.3",
+    "drupal/core-composer-scaffold": "^9",
+    "drupal/core-recommended": "^9",
+    "drupal/feeds": "^3.0",
+    "drupal/feeds_ex": "^1.0",
+    "drupal/feeds_tamper": "^2.0",
+    "drupal/graphql": "^4.0",
+    "drupal/nodeaccess": "^1.0",
+    "drupal/pathauto": "^1.8",
+    "drupal/token": "^1.7",
+    "fontanalib/fontanalib": "dev-dev",
+    "fontanalib/frl": "dev-master"
+  },
+  "conflict": {
+      "drupal/drupal": "*"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+      "sort-packages": true
+  },
+  "extra": {
+      "drupal-scaffold": {
+          "locations": {
+              "web-root": "web/"
+          }
+      },
+      "installer-paths": {
+          "web/core": [
+              "type:drupal-core"
+          ],
+          "web/libraries/{$name}": [
+              "type:drupal-library"
+          ],
+          "web/modules/contrib/{$name}": [
+              "type:drupal-module"
+          ],
+          "web/profiles/contrib/{$name}": [
+              "type:drupal-profile"
+          ],
+          "web/themes/contrib/{$name}": [
+              "type:drupal-theme"
+          ],
+          "drush/Commands/contrib/{$name}": [
+              "type:drupal-drush"
+          ],
+          "web/modules/custom/{$name}": [
+              "type:drupal-custom-module"
+          ],
+          "web/themes/custom/{$name}": [
+              "type:drupal-custom-theme"
+          ],
+          "web/profiles/custom/{$name}": [
+            "type:drupal-custom-profile"
+          ]
+      }
+  },
+  "require-dev": {
+    "drupal/devel": "^4.0",
+    "kint-php/kint": "^3.3"
+  }
 }
